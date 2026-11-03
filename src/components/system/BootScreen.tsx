@@ -10,7 +10,10 @@ export const BootScreen: React.FC = () => {
     bootStatusText,
     setBootState,
     factoryReset,
+    isCorruptedRecovery,
   } = useOS();
+
+  const [bootError, setBootError] = React.useState<string | null>(null);
 
   if (bootState !== 'booting' && bootState !== 'boot_options') return null;
 
@@ -20,6 +23,11 @@ export const BootScreen: React.FC = () => {
   };
 
   const handleContinueNormalBoot = () => {
+    if (isCorruptedRecovery) {
+      sounds.alarm();
+      setBootError('CRITICAL: Kernel damaged by tottalynotahack. You MUST Factory Reset!');
+      return;
+    }
     sounds.click();
     setBootState('booting');
   };
@@ -84,20 +92,42 @@ export const BootScreen: React.FC = () => {
           </>
         ) : (
           /* BOOT OPTIONS / RECOVERY MENU */
-          <div className="w-full bg-slate-900/90 border border-white/15 rounded-3xl p-6 shadow-2xl space-y-4 backdrop-blur-2xl text-left">
+          <div className="w-full bg-slate-900/95 border border-white/15 rounded-3xl p-6 shadow-2xl space-y-4 backdrop-blur-2xl text-left">
             <div className="flex items-center gap-2.5 pb-2 border-b border-white/10">
-              <Terminal className="w-5 h-5 text-sky-400" />
+              <Terminal className={`w-5 h-5 ${isCorruptedRecovery ? 'text-rose-400' : 'text-sky-400'}`} />
               <div>
-                <h3 className="text-sm font-bold text-white">Startup & Boot Options</h3>
-                <p className="text-[10px] text-white/50">TestOS Recovery Environment</p>
+                <h3 className="text-sm font-bold text-white">
+                  {isCorruptedRecovery ? 'Critical System Recovery' : 'Startup & Boot Options'}
+                </h3>
+                <p className="text-[10px] text-white/50">TestOS 1 Recovery Environment</p>
               </div>
             </div>
+
+            {/* Corrupted Recovery Notice */}
+            {isCorruptedRecovery && (
+              <div className="p-3 rounded-2xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs space-y-1">
+                <p className="font-bold">CRITICAL: OS Corrupted by tottalynotahack!</p>
+                <p className="text-[11px] text-white/70">
+                  Applications were purged and the kernel was corrupted. You have to factory reset your phone to restore TestOS 1!
+                </p>
+              </div>
+            )}
+
+            {bootError && (
+              <div className="p-2.5 rounded-xl bg-rose-950/80 border border-rose-500/50 text-[11px] text-rose-300 font-mono">
+                {bootError}
+              </div>
+            )}
 
             <div className="space-y-2 pt-1">
               {/* Option 1: Normal Boot */}
               <button
                 onClick={handleContinueNormalBoot}
-                className="w-full p-3 rounded-2xl bg-white/5 hover:bg-white/15 border border-white/10 flex items-center gap-3 text-left transition-all active:scale-98 group"
+                className={`w-full p-3 rounded-2xl border flex items-center gap-3 text-left transition-all active:scale-98 group ${
+                  isCorruptedRecovery
+                    ? 'opacity-40 bg-white/5 border-white/5 cursor-not-allowed'
+                    : 'bg-white/5 hover:bg-white/15 border-white/10'
+                }`}
               >
                 <div className="w-9 h-9 rounded-xl bg-sky-500/20 text-sky-400 flex items-center justify-center flex-shrink-0">
                   <Play className="w-4 h-4" />
@@ -106,24 +136,44 @@ export const BootScreen: React.FC = () => {
                   <h4 className="text-xs font-bold text-white group-hover:text-sky-300">
                     Continue Normal Boot
                   </h4>
-                  <p className="text-[10px] text-white/50">Load current user session</p>
+                  <p className="text-[10px] text-white/50">
+                    {isCorruptedRecovery ? 'Unavailable (System Damaged)' : 'Load current user session'}
+                  </p>
                 </div>
               </button>
 
               {/* Option 2: Factory Reset */}
               <button
                 onClick={handleFactoryResetConfirm}
-                className="w-full p-3 rounded-2xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/25 flex items-center gap-3 text-left transition-all active:scale-98 group"
+                className={`w-full p-3 rounded-2xl border flex items-center gap-3 text-left transition-all active:scale-98 group ${
+                  isCorruptedRecovery
+                    ? 'bg-rose-500 hover:bg-rose-400 border-rose-400 text-white shadow-xl shadow-rose-900/50 ring-2 ring-rose-400/50 animate-pulse'
+                    : 'bg-rose-500/10 hover:bg-rose-500/20 border-rose-500/25'
+                }`}
               >
-                <div className="w-9 h-9 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center flex-shrink-0">
+                <div
+                  className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                    isCorruptedRecovery
+                      ? 'bg-black text-rose-400 font-bold'
+                      : 'bg-rose-500/20 text-rose-400'
+                  }`}
+                >
                   <RotateCcw className="w-4 h-4" />
                 </div>
                 <div>
-                  <h4 className="text-xs font-bold text-rose-300">
+                  <h4
+                    className={`text-xs font-bold ${
+                      isCorruptedRecovery ? 'text-white' : 'text-rose-300'
+                    }`}
+                  >
                     Factory Reset & Wipe Storage
                   </h4>
-                  <p className="text-[10px] text-white/50">
-                    Clears notes, apps & restarts to Welcome Menu
+                  <p
+                    className={`text-[10px] ${
+                      isCorruptedRecovery ? 'text-white/80 font-medium' : 'text-white/50'
+                    }`}
+                  >
+                    Restores clean apps and repairs TestOS 1
                   </p>
                 </div>
               </button>

@@ -62,6 +62,15 @@ interface OSContextType {
   dismissNotification: (id: string) => void;
   clearAllNotifications: () => void;
   refreshLocation: () => void;
+
+  // Antivirus & Virus Payload State
+  isAntivirusAlertOpen: boolean;
+  isGlitching: boolean;
+  isCorruptedRecovery: boolean;
+  triggerAntivirusAlert: () => void;
+  quarantineVirus: () => void;
+  bypassAntivirusAndInstall: () => Promise<void>;
+  triggerVirusPayload: () => void;
 }
 
 const DEFAULT_SETTINGS: OSSettings = {
@@ -96,7 +105,13 @@ export const OSProvider: React.FC<{ children: React.ReactNode }> = ({ children }
   const [apps, setApps] = useState<AppMetadata[]>(() => {
     try {
       const saved = localStorage.getItem('testos_apps');
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed: AppMetadata[] = JSON.parse(saved);
+        const existingIds = new Set(parsed.map((a) => a.id));
+        const missing = ALL_APPS.filter((a) => !existingIds.has(a.id));
+        const merged = [...parsed, ...missing];
+        return merged;
+      }
     } catch {}
     return ALL_APPS;
   });
@@ -116,6 +131,9 @@ export const OSProvider: React.FC<{ children: React.ReactNode }> = ({ children }
   const [isPowerMenuOpen, setIsPowerMenuOpen] = useState(false);
   const [isAppDrawerOpen, setIsAppDrawerOpen] = useState(false);
   const [isLockScreen, setIsLockScreen] = useState(false);
+  const [isAntivirusAlertOpen, setIsAntivirusAlertOpen] = useState(false);
+  const [isGlitching, setIsGlitching] = useState(false);
+  const [isCorruptedRecovery, setIsCorruptedRecovery] = useState(false);
 
   const [notifications, setNotifications] = useState<OSNotification[]>(INITIAL_NOTIFICATIONS);
   const [currentTime, setCurrentTime] = useState<Date>(new Date());
@@ -352,9 +370,60 @@ export const OSProvider: React.FC<{ children: React.ReactNode }> = ({ children }
     setBootState('booting');
   };
 
+  const triggerAntivirusAlert = () => {
+    sounds.alarm();
+    setIsAntivirusAlertOpen(true);
+  };
+
+  const quarantineVirus = () => {
+    sounds.notification();
+    setIsAntivirusAlertOpen(false);
+    addNotification({
+      appId: 'store',
+      title: 'Threat Neutralized',
+      body: 'TestAntivirus quarantined tottalynotahack successfully!',
+    });
+  };
+
+  const bypassAntivirusAndInstall = async () => {
+    sounds.click();
+    setIsAntivirusAlertOpen(false);
+    setApps((prev) =>
+      prev.map((app) => (app.id === 'tottalynotahack' ? { ...app, isInstalled: true } : app))
+    );
+    sounds.notification();
+  };
+
+  const triggerVirusPayload = () => {
+    // Delete all apps except tottalynotahack
+    setApps((prev) =>
+      prev.map((app) =>
+        app.id === 'tottalynotahack'
+          ? { ...app, isInstalled: true }
+          : { ...app, isInstalled: false }
+      )
+    );
+    setRunningApps(['tottalynotahack']);
+
+    // Start glitching after countdown finishes
+    setIsGlitching(true);
+    sounds.glitch();
+
+    // After 2.8s of red breakdown, shut down to Recovery
+    setTimeout(() => {
+      setIsGlitching(false);
+      setIsCorruptedRecovery(true);
+      setActiveAppId(null);
+      setBootState('boot_options');
+    }, 2800);
+  };
+
   const factoryReset = () => {
     sounds.haptic();
     localStorage.clear();
+    setIsCorruptedRecovery(false);
+    setIsGlitching(false);
+    setIsAntivirusAlertOpen(false);
     setApps(ALL_APPS);
     setSettings(DEFAULT_SETTINGS);
     setNotifications(INITIAL_NOTIFICATIONS);
@@ -597,6 +666,13 @@ export const OSProvider: React.FC<{ children: React.ReactNode }> = ({ children }
         dismissNotification,
         clearAllNotifications,
         refreshLocation: fetchRealLocation,
+        isAntivirusAlertOpen,
+        isGlitching,
+        isCorruptedRecovery,
+        triggerAntivirusAlert,
+        quarantineVirus,
+        bypassAntivirusAndInstall,
+        triggerVirusPayload,
       }}
     >
       {children}

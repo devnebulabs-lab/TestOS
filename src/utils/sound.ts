@@ -233,6 +233,77 @@ class SoundEngine {
       osc.stop(ctx.currentTime + 0.1);
     } catch {}
   }
+
+  /** Warning / Antivirus siren alarm */
+  public alarm() {
+    if (!this.enabled) return;
+    try {
+      const ctx = this.getContext();
+      if (!ctx) return;
+      const now = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(880, now);
+      osc.frequency.linearRampToValueAtTime(440, now + 0.15);
+      osc.frequency.linearRampToValueAtTime(880, now + 0.3);
+
+      gain.gain.setValueAtTime(0.15, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(now + 0.36);
+    } catch {}
+  }
+
+  /** Countdown beep for virus restart */
+  public countdownBeep(urgent = false) {
+    if (!this.enabled) return;
+    try {
+      const ctx = this.getContext();
+      if (!ctx) return;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(urgent ? 1046.5 : 784, ctx.currentTime); // C6 or G5
+      gain.gain.setValueAtTime(0.12, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.09);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.1);
+    } catch {}
+  }
+
+  /** Static glitch crash noise */
+  public glitch() {
+    if (!this.enabled) return;
+    try {
+      const ctx = this.getContext();
+      if (!ctx) return;
+      const bufferSize = ctx.sampleRate * 0.25;
+      const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        data[i] = (Math.random() * 2 - 1) * (i % 20 < 10 ? 1 : -0.8);
+      }
+      const noise = ctx.createBufferSource();
+      noise.buffer = buffer;
+
+      const gain = ctx.createGain();
+      gain.gain.setValueAtTime(0.2, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+
+      noise.connect(gain);
+      gain.connect(ctx.destination);
+      noise.start();
+    } catch {}
+  }
 }
 
 export const sounds = new SoundEngine();

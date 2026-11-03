@@ -14,6 +14,8 @@ import {
   Gamepad2,
   Folder,
   AppWindow,
+  Skull,
+  AlertTriangle,
 } from 'lucide-react';
 
 export const getAppIcon = (iconName: string, className = 'w-6 h-6'): React.ReactNode => {
@@ -44,6 +46,10 @@ export const getAppIcon = (iconName: string, className = 'w-6 h-6'): React.React
       return <Gamepad2 className={className} />;
     case 'Folder':
       return <Folder className={className} />;
+    case 'Skull':
+      return <Skull className={className} />;
+    case 'AlertTriangle':
+      return <AlertTriangle className={className} />;
     default:
       return <AppWindow className={className} />;
   }

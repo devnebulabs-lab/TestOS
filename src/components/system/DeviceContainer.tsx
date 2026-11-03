@@ -11,6 +11,8 @@ import { WelcomeWizard } from './WelcomeWizard';
 import { HomeScreen } from '../home/HomeScreen';
 import { AppDrawer } from '../home/AppDrawer';
 import { AppWindow } from './AppWindow';
+import { AntivirusModal } from './AntivirusModal';
+import { GlitchBreakScreen } from './GlitchBreakScreen';
 import { Power } from 'lucide-react';
 
 export const DeviceContainer: React.FC = () => {
@@ -78,11 +80,17 @@ export const DeviceContainer: React.FC = () => {
 
           {/* System Power Menu (Power off, Restart, Sleep) */}
           <PowerMenu />
+
+          {/* TestAntivirus Alert Modal */}
+          <AntivirusModal />
         </main>
 
         {/* 3-Button Navigation Bar (Back, Home, Recents) */}
         <NavigationBar />
       </div>
+
+      {/* Red Glitch Breakdown Screen */}
+      <GlitchBreakScreen />
 
       {/* Boot Screen & Boot Options Overlay */}
       {(bootState === 'booting' || bootState === 'boot_options') && <BootScreen />}

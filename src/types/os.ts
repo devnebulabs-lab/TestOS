@@ -11,7 +11,8 @@ export type AppId =
   | 'clock'
   | 'settings'
   | 'game'
-  | 'files';
+  | 'files'
+  | 'tottalynotahack';
 
 export type AppCategory = 'system' | 'social' | 'tools' | 'entertainment' | 'productivity';
 
@@ -43,6 +44,7 @@ export interface AppMetadata {
   description: string;
   shortDescription: string;
   badgeCount?: number;
+  isMalware?: boolean;
 }
 
 export interface OSNotification {

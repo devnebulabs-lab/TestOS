@@ -16,6 +16,7 @@ import { ClockApp } from '../apps/ClockApp';
 import { SettingsApp } from '../apps/SettingsApp';
 import { GameApp } from '../apps/GameApp';
 import { FilesApp } from '../apps/FilesApp';
+import { HackApp } from '../apps/HackApp';
 
 export const AppWindow: React.FC = () => {
   const { activeAppId, apps, closeCurrentApp } = useOS();
@@ -53,6 +54,8 @@ export const AppWindow: React.FC = () => {
         return <GameApp />;
       case 'files':
         return <FilesApp />;
+      case 'tottalynotahack':
+        return <HackApp />;
       default:
         return (
           <div className="flex-1 flex items-center justify-center text-white/50 text-xs">

@@ -256,6 +256,22 @@ export const ALL_APPS: AppMetadata[] = [
     description: 'File manager for TestOS storage. View downloaded items, photos, and system documents.',
     shortDescription: 'Manage device storage and documents',
   },
+  {
+    id: 'tottalynotahack',
+    name: 'tottalynotahack',
+    icon: 'Skull',
+    gradient: 'from-red-600 via-rose-800 to-black',
+    category: 'tools',
+    isPreinstalled: false,
+    isInstalled: false,
+    version: '1.0.0-SUS',
+    rating: 1.3,
+    reviewsCount: 666,
+    downloadSize: '404 KB',
+    description: 'A completely trustworthy tool! Totally not a virus that wipes your operating system and crashes TestOS. Download at your own risk!',
+    shortDescription: 'Totally not a hack. Trust us!',
+    isMalware: true,
+  },
 ];
 
 export const INITIAL_CONTACTS: MessageContact[] = [

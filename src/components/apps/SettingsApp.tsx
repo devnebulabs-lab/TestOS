@@ -18,6 +18,11 @@ import {
   RefreshCw,
   Sliders,
   Image,
+  ShieldAlert,
+  ShieldCheck,
+  AlertTriangle,
+  Skull,
+  Trash2,
 } from 'lucide-react';
 import { sounds } from '../../utils/sound';
 
@@ -33,12 +38,20 @@ export const SettingsApp: React.FC = () => {
     togglePowerMenu,
     batteryLevel,
     isCharging,
+    apps,
+    uninstallApp,
+    addNotification,
   } = useOS();
 
   const [activeTab, setActiveTab] = useState<
-    'all' | 'about' | 'display' | 'sound' | 'location' | 'navigation' | 'battery' | 'wallpapers'
+    'all' | 'about' | 'display' | 'sound' | 'location' | 'navigation' | 'battery' | 'wallpapers' | 'antivirus'
   >('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [isScanning, setIsScanning] = useState(false);
+  const [scanProgress, setScanProgress] = useState(0);
+  const [scanResult, setScanResult] = useState<{ threat: boolean; name?: string } | null>(null);
+
+  const hackAppInstalled = apps.some((a) => a.id === 'tottalynotahack' && a.isInstalled);
 
   const handleFactoryReset = () => {
     if (confirm('Are you sure you want to factory reset TestOS? All notes, installed apps, and custom settings will be wiped and you will be returned to the Welcome Setup.')) {
@@ -50,6 +63,43 @@ export const SettingsApp: React.FC = () => {
   const handleRerunWelcome = () => {
     sounds.click();
     setBootState('welcome');
+  };
+
+  const handleStartScan = () => {
+    sounds.click();
+    setIsScanning(true);
+    setScanProgress(0);
+    setScanResult(null);
+
+    const interval = setInterval(() => {
+      setScanProgress((prev) => {
+        const next = prev + 20;
+        if (next >= 100) {
+          clearInterval(interval);
+          setIsScanning(false);
+          if (hackAppInstalled) {
+            sounds.alarm();
+            setScanResult({ threat: true, name: 'tottalynotahack (Trojan.Wiper.Payload)' });
+          } else {
+            sounds.notification();
+            setScanResult({ threat: false });
+          }
+          return 100;
+        }
+        return next;
+      });
+    }, 180);
+  };
+
+  const handleQuarantineFromSettings = () => {
+    sounds.haptic();
+    uninstallApp('tottalynotahack');
+    setScanResult({ threat: false });
+    addNotification({
+      appId: 'settings',
+      title: 'Threat Neutralized',
+      body: 'TestAntivirus removed tottalynotahack from TestOS storage.',
+    });
   };
 
   return (
@@ -125,6 +175,44 @@ export const SettingsApp: React.FC = () => {
                   <div>
                     <h4 className="text-xs font-bold text-white">About Phone</h4>
                     <p className="text-[10px] text-white/50">Device specs, RAM, processor, storage</p>
+                  </div>
+                </div>
+                <span className="text-xs text-white/40">→</span>
+              </div>
+
+              {/* TestAntivirus & Security */}
+              <div
+                onClick={() => setActiveTab('antivirus')}
+                className={`p-3.5 rounded-2xl border flex items-center justify-between cursor-pointer transition-colors ${
+                  hackAppInstalled
+                    ? 'bg-rose-500/20 border-rose-500/40 shadow-lg shadow-rose-950/40 animate-pulse'
+                    : 'bg-white/5 hover:bg-white/10 border-white/10'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <div
+                    className={`w-9 h-9 rounded-xl flex items-center justify-center ${
+                      hackAppInstalled
+                        ? 'bg-rose-500 text-white'
+                        : 'bg-emerald-500/20 text-emerald-400'
+                    }`}
+                  >
+                    {hackAppInstalled ? <ShieldAlert className="w-5 h-5" /> : <ShieldCheck className="w-5 h-5" />}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h4 className="text-xs font-bold text-white">TestAntivirus & Security</h4>
+                      {hackAppInstalled && (
+                        <span className="text-[9px] bg-rose-500 text-white px-1.5 py-0.5 rounded font-bold">
+                          THREAT FOUND
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[10px] text-white/50">
+                      {hackAppInstalled
+                        ? 'Trojan detected: tottalynotahack! Tap to scan'
+                        : 'Real-time shield & malware quarantine'}
+                    </p>
                   </div>
                 </div>
                 <span className="text-xs text-white/40">→</span>
@@ -537,6 +625,132 @@ export const SettingsApp: React.FC = () => {
             >
               <Power className="w-4 h-4" /> Open System Power Menu
             </button>
+          </div>
+        )}
+
+        {/* TAB: ANTIVIRUS & SECURITY */}
+        {activeTab === 'antivirus' && (
+          <div className="space-y-4">
+            {/* Status Card */}
+            <div
+              className={`p-4 rounded-2xl border flex items-center gap-3.5 ${
+                hackAppInstalled
+                  ? 'bg-rose-500/15 border-rose-500/40 text-rose-300'
+                  : 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300'
+              }`}
+            >
+              <div
+                className={`w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 ${
+                  hackAppInstalled ? 'bg-rose-500 text-white shadow-lg shadow-rose-900/50' : 'bg-emerald-500 text-slate-950'
+                }`}
+              >
+                {hackAppInstalled ? <ShieldAlert className="w-6 h-6 animate-bounce" /> : <ShieldCheck className="w-6 h-6" />}
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-sm font-bold text-white">
+                  {hackAppInstalled ? 'Threat Found on Device!' : 'TestOS 1 is Fully Protected'}
+                </h3>
+                <p className="text-[11px] opacity-80 mt-0.5">
+                  {hackAppInstalled
+                    ? 'tottalynotahack is installed and poses a severe system wipe threat!'
+                    : 'Real-time background shield is actively monitoring packages.'}
+                </p>
+              </div>
+            </div>
+
+            {/* Quarantine Action if Threat Detected */}
+            {hackAppInstalled && (
+              <div className="p-4 bg-rose-950/70 border-2 border-rose-500/60 rounded-2xl space-y-3 shadow-xl">
+                <div className="flex items-center gap-2 text-rose-300 text-xs font-bold">
+                  <Skull className="w-4 h-4" />
+                  <span>Detected Malware: tottalynotahack</span>
+                </div>
+                <p className="text-[11px] text-rose-200/80 leading-relaxed font-mono">
+                  Payload Type: Trojan.SystemWiper
+                  <br />
+                  Action: Scheduled to erase all system apps and corrupt kernel!
+                </p>
+                <button
+                  onClick={handleQuarantineFromSettings}
+                  className="w-full py-2.5 rounded-xl bg-rose-500 hover:bg-rose-400 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg transition-all active:scale-95"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  <span>Quarantine & Remove Threat Immediately</span>
+                </button>
+              </div>
+            )}
+
+            {/* Live Scan Trigger */}
+            <div className="p-4 bg-white/5 rounded-2xl border border-white/10 space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="text-xs font-bold text-white">Manual Antivirus Scan</h4>
+                  <p className="text-[10px] text-white/50">Scans all installed applications & storage</p>
+                </div>
+                <button
+                  onClick={handleStartScan}
+                  disabled={isScanning}
+                  className="px-4 py-2 rounded-xl bg-sky-500 hover:bg-sky-400 disabled:opacity-40 text-white font-bold text-xs flex items-center gap-1.5 shadow-md active:scale-95 transition-all"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${isScanning ? 'animate-spin' : ''}`} />
+                  <span>{isScanning ? 'Scanning...' : 'Scan Now'}</span>
+                </button>
+              </div>
+
+              {isScanning && (
+                <div className="space-y-1.5 pt-2">
+                  <div className="w-full bg-white/10 h-2 rounded-full overflow-hidden">
+                    <div
+                      className="bg-sky-400 h-full rounded-full transition-all duration-150"
+                      style={{ width: `${scanProgress}%` }}
+                    />
+                  </div>
+                  <p className="text-[10px] font-mono text-sky-300">
+                    Inspecting packages... {scanProgress}%
+                  </p>
+                </div>
+              )}
+
+              {scanResult && !isScanning && (
+                <div
+                  className={`p-3 rounded-xl border text-xs ${
+                    scanResult.threat
+                      ? 'bg-rose-500/20 border-rose-500/40 text-rose-300'
+                      : 'bg-emerald-500/20 border-emerald-500/30 text-emerald-300'
+                  }`}
+                >
+                  {scanResult.threat ? (
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold">⚠️ Warning: {scanResult.name}</span>
+                      <button
+                        onClick={handleQuarantineFromSettings}
+                        className="px-2.5 py-1 bg-rose-500 text-white font-bold rounded-lg text-[10px]"
+                      >
+                        Quarantine
+                      </button>
+                    </div>
+                  ) : (
+                    <span>✅ Scan Complete: 0 threats found. System is clean.</span>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Antivirus Database Specs */}
+            <div className="p-4 bg-white/5 rounded-2xl border border-white/10 space-y-2 text-xs">
+              <div className="flex justify-between py-1 border-b border-white/5">
+                <span className="text-white/50">Engine</span>
+                <span className="font-semibold text-white">TestAntivirus 1.0 Core</span>
+              </div>
+              <div className="flex justify-between py-1 border-b border-white/5">
+                <span className="text-white/50">Signatures</span>
+                <span className="font-mono text-emerald-400">v1.0.4 - Live Cloud</span>
+              </div>
+              <div className="flex justify-between py-1">
+                <span className="text-white/50">Store Protection</span>
+                <span className="text-sky-400 font-semibold">Active & Intercepting</span>
+              </div>
+            </div>
           </div>
         )}
       </div>

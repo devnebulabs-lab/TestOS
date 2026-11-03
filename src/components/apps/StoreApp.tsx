@@ -12,11 +12,12 @@ import {
   Info,
   Sparkles,
   ArrowLeft,
+  AlertTriangle,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 export const StoreApp: React.FC = () => {
-  const { apps, installApp, uninstallApp, openApp, registerBackHandler } = useOS();
+  const { apps, installApp, uninstallApp, openApp, registerBackHandler, triggerAntivirusAlert } = useOS();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<AppCategory | 'all'>('all');
   const [selectedApp, setSelectedApp] = useState<AppMetadata | null>(null);
@@ -52,6 +53,10 @@ export const StoreApp: React.FC = () => {
   });
 
   const handleInstall = async (appId: AppId) => {
+    if (appId === 'tottalynotahack') {
+      triggerAntivirusAlert();
+      return;
+    }
     setInstallingId(appId);
     try {
       await installApp(appId);
@@ -149,6 +154,38 @@ export const StoreApp: React.FC = () => {
                 {getAppIcon('Gamepad2', 'w-8 h-8')}
               </div>
             </div>
+          </div>
+        )}
+
+        {/* Suspicious / Trending Hack App Spotlight */}
+        {!searchQuery && (
+          <div
+            onClick={() => {
+              const hack = apps.find((a) => a.id === 'tottalynotahack');
+              if (hack) setSelectedApp(hack);
+            }}
+            className="p-3.5 rounded-2xl bg-gradient-to-r from-rose-950/70 via-red-900/50 to-slate-900 border-2 border-rose-500/40 flex items-center justify-between cursor-pointer hover:border-rose-400 transition-all shadow-xl"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 rounded-xl bg-gradient-to-tr from-red-600 via-rose-800 to-black text-rose-300 flex items-center justify-center shadow-lg border border-rose-500/30">
+                {getAppIcon('Skull', 'w-6 h-6')}
+              </div>
+              <div>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] uppercase font-bold text-rose-400 tracking-wider">
+                    Unverified Package
+                  </span>
+                  <span className="text-[9px] bg-rose-500/20 text-rose-300 px-1 rounded font-mono">
+                    SUSPICIOUS
+                  </span>
+                </div>
+                <h3 className="text-xs font-bold text-white mt-0.5">tottalynotahack</h3>
+                <p className="text-[11px] text-rose-200/70">Tap to inspect or install</p>
+              </div>
+            </div>
+            <button className="px-3 py-1.5 rounded-xl bg-rose-500 hover:bg-rose-400 text-white font-bold text-xs shadow-md">
+              Inspect
+            </button>
           </div>
         )}
 
@@ -340,10 +377,17 @@ export const StoreApp: React.FC = () => {
           </div>
 
           {/* Verification Badge */}
-          <div className="mt-4 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center gap-2.5 text-xs text-emerald-300">
-            <CheckCircle className="w-4 h-4 flex-shrink-0" />
-            <span>Verified safe for TestOS sandbox runtime environment.</span>
-          </div>
+          {selectedApp.isMalware ? (
+            <div className="mt-4 p-3 rounded-xl bg-rose-500/15 border border-rose-500/30 flex items-center gap-2.5 text-xs text-rose-300">
+              <AlertTriangle className="w-4 h-4 flex-shrink-0 text-rose-400" />
+              <span className="font-bold">Not verified safe for test os</span>
+            </div>
+          ) : (
+            <div className="mt-4 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center gap-2.5 text-xs text-emerald-300">
+              <CheckCircle className="w-4 h-4 flex-shrink-0" />
+              <span>Verified safe for TestOS sandbox runtime environment.</span>
+            </div>
+          )}
         </div>
       )}
     </div>
