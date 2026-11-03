@@ -1,0 +1,6 @@
+{
+  "name": "TestOS - Mobile Operating System",
+  "description": "An interactive mobile operating system simulator featuring clouded frosted-glass windows, animated app switcher, 3-button navigation, Store, and a working browser with search engine.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
